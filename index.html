@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music player</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+<style>
+    body{
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        align-items: center;
+        background-color: rgb(16, 16, 16);
+        color: white;
+    }
+    .fa-pause{
+display: none;
+    }
+    
+    #seekSlider{
+        width: 93%;
+    }
+  
+
+   .images{
+    width: 100%;
+    height: 93vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+   }
+.alin{
+    margin-left: 80px;
+}
+@media only screen and (max-width: 430px) {
+    .alin{
+    margin-left: 20px;
+}
+}
+</style>
+<body>
+    <div class="images">
+<img id="img" src="" width="80%" alt="">
+    </div>
+
+
+    <audio id="audioPlayer">
+        <source src="" type="audio/mpeg">
+      </audio>
+      <div class="alin">
+        <input type="range" id="seekSlider" min="0" value="0" step="1"><br>
+        <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+        <button id="prevButton"><i class="fa fa-backward" aria-hidden="true"></i></button>
+        <button id="toggleButton"><i class="fa fa-pause" aria-hidden="true"></i><i class="fa fa-play" aria-hidden="true"></i></button>
+        <button id="nextButton"><i class="fa fa-forward" aria-hidden="true"></i></button>
+        
+      </div>
+      
+
+
+
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+  var audio = document.getElementById("audioPlayer");
+  var img = document.getElementById("img");
+  var toggleButton = document.getElementById("toggleButton");
+  var prevButton = document.getElementById("prevButton");
+  var nextButton = document.getElementById("nextButton");
+  var seekSlider = document.getElementById("seekSlider");
+  var currentTimeDisplay = document.getElementById("currentTime");
+  var durationDisplay = document.getElementById("duration");
+let pauseicon =  document.querySelector(".fa-pause");
+let playicon =  document.querySelector(".fa-play");
+  var currentSongIndex = 0;
+  var songs = [];
+
+  function loadSongs() {
+    fetch('song.json')
+      .then(response => response.json())
+      .then(data => {
+        songs = data;
+    console.log(songs);
+        loadSong(currentSongIndex); 
+      })
+      .catch(error => console.error('Error loading songs:', error));
+  }
+
+
+  function loadSong(index) {
+    var song = songs[index];
+    console.log(song);
+    audio.src = song.source;
+   
+    img.src = song.img;
+    audio.play();
+    
+    audio.addEventListener('loadedmetadata', function() {
+        durationDisplay.textContent = formatTime(audio.duration);
+        seekSlider.max = audio.duration; // Update the max attribute of the slider
+    });
+}
+
+  
+  toggleButton.addEventListener("click", function() {
+    if (audio.paused) {
+      audio.play();
+      document.querySelector(".fa-play").style.display = "none";
+      document.querySelector(".fa-pause").style.display = "block";
+    } else {
+      audio.pause();
+      document.querySelector(".fa-play").style.display = "block";
+      document.querySelector(".fa-pause").style.display = "none";
+     
+    }
+  });
+
+
+  prevButton.addEventListener("click", function() {
+    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+    loadSong(currentSongIndex);
+  });
+
+
+  nextButton.addEventListener("click", function() {
+    currentSongIndex = (currentSongIndex + 1) % songs.length;
+    loadSong(currentSongIndex);
+  });
+  seekSlider.addEventListener("input", function() {
+    audio.currentTime = seekSlider.value;
+    currentTimeDisplay.textContent = formatTime(audio.currentTime);
+  });
+
+ 
+  audio.addEventListener("timeupdate", function() {
+    seekSlider.value = audio.currentTime;
+    currentTimeDisplay.textContent = formatTime(audio.currentTime);
+  });
+  audio.addEventListener("ended", function() {
+  
+    currentSongIndex = (currentSongIndex + 1) % songs.length;
+    loadSong(currentSongIndex);
+});
+
+
+
+  function formatTime(time) {
+    var minutes = Math.floor(time / 60);
+    var seconds = Math.floor(time % 60);
+    if (seconds < 10) {
+      seconds = "0" + seconds;
+    }
+    return minutes + ":" + seconds;
+  }
+
+
+
+
+
+
+
+
+  loadSongs();
+});
+</script>
+
+</body>
+</html>
